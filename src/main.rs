@@ -56,22 +56,22 @@ fn process_csv(input: &str, output: &str, format: Format, no_header: bool) -> Re
             if no_header {
                 rdr.records().enumerate().for_each(|(_, record)| {
                     let json_value = record.unwrap().iter().collect::<Value>();
-                    ret.push(json_value.to_string());
+                    ret.push(json_value);
                 });
             } else {
                 let header = rdr.headers()?.clone();
                 rdr.records().enumerate().for_each(|(_, record)| {
                     let json_value = header.iter().zip(record.unwrap().iter()).collect::<Value>();
-                    ret.push(json_value.to_string());
+                    ret.push(json_value);
                 });
             }
         }
         Format::Yaml => todo!("yaml format is not implemented"),
     }
     if output == "-" {
-        println!("{}", ret.join("\n"));
+        print!("{}", serde_json::to_string_pretty(&ret)?);
     } else {
-        std::fs::write(output, ret.join("\n"))?;
+        std::fs::write(output, serde_json::to_string_pretty(&ret)?)?;
     }
     Ok(())
 }
