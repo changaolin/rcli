@@ -1,4 +1,5 @@
 [default.extend-words]
+"thne" = "the one"
 
 [files]
-extend-exclude = ["CHANGELOG.md", "notebooks/*"]
+extend-exclude = ["CHANGELOG.md", ".vscode", "Cargo.toml"]
