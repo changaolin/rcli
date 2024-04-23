@@ -50,28 +50,27 @@ fn process_csv(input: &str, output: &str, format: Format, no_header: bool) -> Re
         buf = std::fs::read_to_string(input)?;
     }
     let mut ret = vec![];
-    match format {
-        Format::Json => {
-            let mut rdr = Reader::from_reader(buf.as_bytes());
-            if no_header {
-                rdr.records().enumerate().for_each(|(_, record)| {
-                    let json_value = record.unwrap().iter().collect::<Value>();
-                    ret.push(json_value);
-                });
-            } else {
-                let header = rdr.headers()?.clone();
-                rdr.records().enumerate().for_each(|(_, record)| {
-                    let json_value = header.iter().zip(record.unwrap().iter()).collect::<Value>();
-                    ret.push(json_value);
-                });
-            }
-        }
-        Format::Yaml => todo!("yaml format is not implemented"),
-    }
-    if output == "-" {
-        print!("{}", serde_json::to_string_pretty(&ret)?);
+    let mut rdr = Reader::from_reader(buf.as_bytes());
+    if no_header {
+        rdr.records().enumerate().for_each(|(_, record)| {
+            let json_value = record.unwrap().iter().collect::<Value>();
+            ret.push(json_value);
+        });
     } else {
-        std::fs::write(output, serde_json::to_string_pretty(&ret)?)?;
+        let header = rdr.headers()?.clone();
+        rdr.records().enumerate().for_each(|(_, record)| {
+            let json_value = header.iter().zip(record.unwrap().iter()).collect::<Value>();
+            ret.push(json_value);
+        });
+    }
+    let write_data = match format {
+        Format::Json => serde_json::to_string_pretty(&ret)?,
+        Format::Yaml => serde_yaml::to_string(&ret)?,
+    };
+    if output == "-" {
+        print!("{}", write_data);
+    } else {
+        std::fs::write(output, write_data)?;
     }
     Ok(())
 }
@@ -93,7 +92,7 @@ impl FromStr for Format {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "json" => Ok(Format::Json),
-            "toml" => Ok(Format::Yaml),
+            "yaml" => Ok(Format::Yaml),
             _ => Err("Invalid format"),
         }
     }
@@ -102,7 +101,7 @@ impl FromStr for Format {
 fn format_value_parser(input: &str) -> Result<Format, &'static str> {
     match input {
         "json" => Ok(Format::Json),
-        "toml" => Ok(Format::Yaml),
+        "yaml" => Ok(Format::Yaml),
         _ => Err("Invalid format"),
     }
 }
