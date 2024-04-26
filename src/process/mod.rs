@@ -2,8 +2,8 @@ use std::fs;
 
 use crate::{
     cli::{
-        Base64Format, Base64SubCommand, Opts, OutputFormat, Subcommands, TextSignFormat,
-        TextSubCommand,
+        Base64Format, Base64SubCommand, HttpSubCommand, Opts, OutputFormat, Subcommands,
+        TextSignFormat, TextSubCommand,
     },
     process::text_process::process_text_sign,
     utils::{get_content, get_reader},
@@ -19,9 +19,11 @@ mod base64_process;
 use base64_process::{process_decode, process_encode};
 
 use self::text_process::{process_text_key_generate, process_text_verify};
+mod http_process;
 mod text_process;
+use http_process::process_http_serve;
 /// csv --input <input> --output <output> --delimiter <delimiter> --format json --no-header
-pub fn execute_cmd() -> Result<()> {
+pub async fn execute_cmd() -> Result<()> {
     let cli = Opts::parse();
     match cli.cmd {
         Subcommands::Csv(csv) => process_csv(&csv.input, &csv.output, csv.format, csv.no_header),
@@ -72,6 +74,12 @@ pub fn execute_cmd() -> Result<()> {
                 for (k, v) in key {
                     fs::write(opts.output_path.join(k), v)?;
                 }
+                Ok(())
+            }
+        },
+        Subcommands::Http(cmd) => match cmd {
+            HttpSubCommand::Serve(opts) => {
+                process_http_serve(opts.dir, opts.port).await?;
                 Ok(())
             }
         },
