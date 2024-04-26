@@ -6,6 +6,8 @@ pub use genpass_cli::GenPassOpts;
 use std::fmt::{self, Display, Formatter};
 mod base64_cli;
 pub use base64_cli::{Base64Format, Base64SubCommand};
+mod text_cli;
+pub use text_cli::{TextSignFormat, TextSubCommand};
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -22,6 +24,8 @@ pub enum Subcommands {
     GenPass(GenPassOpts),
     #[command(subcommand, about = "Encode or decode base64")]
     Base64(Base64SubCommand),
+    #[command(subcommand, about = "Sign or verify a text")]
+    Text(TextSubCommand),
 }
 
 impl Display for Subcommands {
@@ -30,6 +34,7 @@ impl Display for Subcommands {
             Subcommands::Csv(_) => write!(f, "csv"),
             Subcommands::GenPass(_) => write!(f, "genpass"),
             Subcommands::Base64(_) => write!(f, "base64"),
+            Subcommands::Text(_) => write!(f, "text"),
         }
     }
 }
